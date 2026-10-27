@@ -1,0 +1,54 @@
+---
+import { subjects, type Lang } from "../config/site";
+import { t, money, fill } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+---
+<section id="subjects" class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+  <div class="max-w-2xl">
+    <h2 class="text-3xl font-extrabold sm:text-4xl">{d.subjects.title}</h2>
+    <p class="mt-3 text-lg text-muted">{d.subjects.lead}</p>
+  </div>
+
+  <fieldset class="mt-10 grid gap-3 md:grid-cols-2" data-subjects>
+    <legend class="sr-only">{d.subjects.title}</legend>
+    {subjects.map((s) => (
+      <label class="pick group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border border-ink-2 bg-ink p-4 pe-5 sm:p-5">
+        <input type="checkbox" name="subject" value={s.id} data-price={s.price} class="peer sr-only" />
+        <span class="h-14 w-2.5 shrink-0 rounded-full" style={`background:${s.color};box-shadow:inset 0 0 0 1px rgba(233,214,166,.35)`}></span>
+        <span class="min-w-0 flex-1">
+          {lang === "ar" ? (
+            <>
+              <span class="naskh block text-2xl font-bold leading-snug text-gold-soft">{s.arabic}</span>
+              {d.subjects.names[s.id] !== s.arabic && <span class="mt-0.5 block text-sm text-muted">{d.subjects.names[s.id]}</span>}
+            </>
+          ) : (
+            <>
+              <span class="block text-lg font-bold leading-snug">{d.subjects.names[s.id]}</span>
+              <span class="naskh mt-0.5 inline-block text-xl text-gold-soft" lang="ar" dir="rtl">{s.arabic}</span>
+            </>
+          )}
+        </span>
+        <span class="shrink-0 text-lg font-bold tabular-nums text-gold">{money(lang, s.price)}</span>
+        <span class="check flex size-6 shrink-0 items-center justify-center rounded-md border border-ink-2 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-gold">
+          <svg viewBox="0 0 16 16" class="size-4 opacity-0" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 8.5l3.2 3L13 4.5" /></svg>
+        </span>
+      </label>
+    ))}
+  </fieldset>
+
+  <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-gold/30 bg-ink/60 px-5 py-4">
+    <p class="text-muted" data-selected-label data-template={d.subjects.selected}>{fill(d.subjects.selected, { n: 0 })}</p>
+    <p class="text-lg">
+      {d.subjects.total}
+      <strong class="ms-2 text-2xl tabular-nums text-gold" data-total>{money(lang, 0)}</strong>
+    </p>
+    <div class="ms-auto flex flex-wrap gap-2">
+      <button type="button" data-select-all class="h-10 rounded-lg border border-ink-2 px-4 text-sm font-semibold hover:border-gold">{d.subjects.selectAll}</button>
+      <button type="button" data-clear class="h-10 rounded-lg px-3 text-sm text-muted hover:text-text">{d.subjects.clear}</button>
+      <a href="#order" class="inline-flex h-10 items-center rounded-lg bg-gold px-4 text-sm font-bold text-night hover:bg-gold-soft">{d.subjects.goToOrder}</a>
+    </div>
+  </div>
+</section>

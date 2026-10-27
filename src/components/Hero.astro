@@ -1,0 +1,59 @@
+---
+import { subjects, pricing, type Lang } from "../config/site";
+import { t, fill, money, startDate } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const heights = [92, 100, 86, 96, 88, 98]; // % of shelf height, gives the row a natural look
+const widths = [3.6, 3.9, 3.4, 3.8, 3.5, 3.7]; // rem
+const tilts = [0, 0, 0, 0, 0, -4];
+---
+<section class="lattice relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-night/40 via-night/70 to-night"></div>
+
+  <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pb-24 md:pt-20">
+    <div class="min-w-0">
+      <p class="text-sm text-gold-soft/90 sm:text-base">{d.hero.context}</p>
+      <h1 class="mt-4 text-balance text-4xl font-extrabold leading-[1.2] sm:text-5xl md:text-[3.4rem]">
+        {d.hero.title}
+      </h1>
+      <p class="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted">{d.hero.lead}</p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="#order" data-preset="full" class="inline-flex h-12 items-center gap-3 rounded-xl bg-gold px-6 font-bold text-night hover:bg-gold-soft">
+          {d.hero.ctaFull}
+          <span class="rounded-md bg-night/15 px-2 py-0.5 text-sm">{money(lang, pricing.fullPackage)}</span>
+        </a>
+        <a href="#group" class="inline-flex h-12 items-center rounded-xl border border-azhar/70 px-6 font-bold text-text hover:bg-azhar/15">
+          {d.hero.ctaGroup}
+        </a>
+      </div>
+
+      <p class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
+        <span class="inline-flex items-center gap-2">
+          <span class="relative flex size-2.5"><span class="absolute inset-0 animate-ping rounded-full bg-azhar/70"></span><span class="relative size-2.5 rounded-full bg-azhar"></span></span>
+          {d.hero.batch}
+        </span>
+        <span>{fill(d.hero.deliveryFrom, { date: startDate(lang) })}</span>
+      </p>
+    </div>
+
+    <!-- The six notes standing on a shelf -->
+    <div class="shelf relative mx-auto w-full min-w-0 max-w-md" aria-hidden="true">
+      <div class="flex h-80 items-end justify-center gap-1.5 sm:h-96">
+        {subjects.map((s, i) => (
+          <div
+            class="booklet flex flex-col items-center justify-between py-5 text-gold-soft"
+            style={`--i:${i};--tilt:${tilts[i]}deg;background:${s.color};height:${heights[i]}%;flex:1 1 0;min-width:0;max-width:${widths[i]}rem;transform-origin:bottom center`}
+          >
+            <svg viewBox="0 0 20 20" class="size-3.5 opacity-80"><path fill="currentColor" d="M10 0l2.9 7.1L20 10l-7.1 2.9L10 20l-2.9-7.1L0 10l7.1-2.9z" /></svg>
+            <span class="naskh text-lg font-bold leading-none sm:text-xl" style="writing-mode:vertical-rl">{s.arabic}</span>
+            <span class="naskh text-xs opacity-80">زاد</span>
+          </div>
+        ))}
+      </div>
+      <div class="h-3 rounded-sm bg-gradient-to-b from-gold to-[#8f7136] shadow-[0_14px_30px_-8px_rgba(211,173,92,.45)]"></div>
+    </div>
+  </div>
+</section>

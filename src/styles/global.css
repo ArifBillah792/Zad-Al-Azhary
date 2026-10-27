@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/* ── Brand tokens ─────────────────────────────────────────── */
+@theme {
+  --color-night: #081629;      /* page background */
+  --color-ink: #0e2340;        /* raised surfaces */
+  --color-ink-2: #15304f;      /* borders, inputs */
+  --color-gold: #d3ad5c;       /* brand gold, prices */
+  --color-gold-soft: #e9d6a6;
+  --color-azhar: #2f8a63;      /* Azhar green, offers */
+  --color-azhar-deep: #17503a;
+  --color-paper: #f1ece0;      /* note pages */
+  --color-text: #eef0f3;
+  --color-muted: #a7b3c4;
+
+  --font-sans: "Cairo", system-ui, sans-serif;
+  --font-bn: "Hind Siliguri", "Cairo", system-ui, sans-serif;
+  --font-naskh: "Amiri", "Cairo", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+body {
+  overflow-x: clip;
+  background: var(--color-night);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+html[lang="bn"] body { font-family: var(--font-bn); }
+
+/* Arabic names of subjects always use Naskh, like the note covers */
+.naskh { font-family: var(--font-naskh); font-feature-settings: "liga", "calt"; }
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Eight-point star lattice used behind the hero and offer */
+.lattice {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23d3ad5c' stroke-opacity='.09' stroke-width='1'%3E%3Cpath d='M40 8l9.4 22.6L72 40l-22.6 9.4L40 72l-9.4-22.6L8 40l22.6-9.4z'/%3E%3Crect x='17.4' y='17.4' width='45.2' height='45.2' transform='rotate(45 40 40)'/%3E%3Crect x='17.4' y='17.4' width='45.2' height='45.2'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+}
+
+/* ── Booklets (hero shelf) ────────────────────────────────── */
+.booklet {
+  position: relative;
+  border-radius: 4px 10px 10px 4px;
+  box-shadow:
+    inset 6px 0 0 rgba(0, 0, 0, 0.22),
+    inset 7px 0 0 rgba(255, 255, 255, 0.08),
+    0 18px 30px -12px rgba(0, 0, 0, 0.6);
+}
+[dir="rtl"] .booklet {
+  border-radius: 10px 4px 4px 10px;
+  box-shadow:
+    inset -6px 0 0 rgba(0, 0, 0, 0.22),
+    inset -7px 0 0 rgba(255, 255, 255, 0.08),
+    0 18px 30px -12px rgba(0, 0, 0, 0.6);
+}
+.booklet::after {
+  /* gold frame on the cover */
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(233, 214, 166, 0.45);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* Single orchestrated moment: the shelf settles in on load */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(18px) rotate(var(--tilt, 0deg)); }
+  to { opacity: 1; transform: translateY(0) rotate(var(--tilt, 0deg)); }
+}
+.shelf .booklet {
+  transform: rotate(var(--tilt, 0deg));
+  animation: settle 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 70ms + 150ms);
+}
+
+/* ── Subject picker ───────────────────────────────────────── */
+.pick {
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.pick:has(input:checked) {
+  border-color: var(--color-gold);
+  background-color: color-mix(in oklab, var(--color-gold) 9%, var(--color-ink));
+}
+.pick .check {
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.pick:has(input:checked) .check {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-night);
+}
+.pick:has(input:checked) .check svg { opacity: 1; }
+
+/* Segmented control */
+.seg input:checked + span {
+  background: var(--color-gold);
+  color: var(--color-night);
+}
+
+.field {
+  width: 100%;
+  background: var(--color-night);
+  border: 1px solid var(--color-ink-2);
+  border-radius: 10px;
+  padding: 0.7rem 0.85rem;
+  color: var(--color-text);
+}
+.field::placeholder { color: #6f7d91; }
+.field:focus { outline: none; border-color: var(--color-gold); }
+.field[aria-invalid="true"] { border-color: #e0796b; }
+
+details summary::-webkit-details-marker { display: none; }
+details[open] .chev { transform: rotate(45deg); }

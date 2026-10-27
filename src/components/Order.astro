@@ -1,0 +1,142 @@
+---
+import { contact, payment, pricing, subjects, delivery, type Lang } from "../config/site";
+import { t, money } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const o = d.order;
+
+// Everything the browser script needs, in this page's language
+const clientData = {
+  lang,
+  currency: d.currency,
+  contact,
+  pricing,
+  subjects: subjects.map((s) => ({ id: s.id, price: s.price, name: d.subjects.names[s.id] })),
+  t: { ...o, fullSetName: o.fullSet, modeIndividual: o.modeIndividual, modeGroup: o.modeGroup },
+};
+const payments = [
+  { id: "vodafone", label: o.payments.vodafone, detail: payment.vodafoneCash },
+  { id: "instapay", label: o.payments.instapay, detail: payment.instaPay },
+  ...(payment.cashOnDelivery ? [{ id: "cod", label: o.payments.cod, detail: "" }] : []),
+];
+---
+<section id="order" class="border-t border-white/5 bg-ink/40">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+    <h2 class="text-3xl font-extrabold sm:text-4xl">{o.title}</h2>
+    <p class="mt-3 max-w-2xl text-lg text-muted">{o.lead}</p>
+
+    <form id="order-form" novalidate class="mt-10 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+      <div class="space-y-7">
+        <!-- Order type -->
+        <fieldset>
+          <legend class="mb-2 text-sm font-semibold text-muted">{o.modeLabel}</legend>
+          <div class="inline-flex rounded-xl border border-ink-2 bg-night p-1">
+            <label class="seg cursor-pointer">
+              <input type="radio" name="mode" value="individual" class="sr-only" checked />
+              <span class="block rounded-lg px-5 py-2 font-semibold">{o.modeIndividual}</span>
+            </label>
+            <label class="seg cursor-pointer">
+              <input type="radio" name="mode" value="group" class="sr-only" />
+              <span class="block rounded-lg px-5 py-2 font-semibold">{o.modeGroup}</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Notes chosen -->
+        <div>
+          <p class="mb-2 text-sm font-semibold text-muted">{o.subjectsLabel}</p>
+          <div class="flex flex-wrap items-center gap-2 rounded-xl border border-ink-2 bg-night p-3" data-chosen>
+            <!-- filled by script -->
+          </div>
+          <p class="mt-2 hidden text-sm text-[#e0796b]" data-error="subjects">{o.errors.subjects}</p>
+        </div>
+
+        <!-- Buyer -->
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-muted">{o.name}</span>
+            <input name="name" autocomplete="name" class="field" required />
+            <span class="mt-1.5 hidden text-sm text-[#e0796b]" data-error="name">{o.errors.name}</span>
+          </label>
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-muted">{o.phone}</span>
+            <input name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" class="field text-start" required />
+            <span class="mt-1.5 hidden text-sm text-[#e0796b]" data-error="phone">{o.errors.phone}</span>
+          </label>
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-muted">{o.area}</span>
+            <select name="area" class="field">
+              {delivery.areas.map((a) => <option value={a}>{o.areas[a]}</option>)}
+            </select>
+          </label>
+          <label class="block">
+            <span class="mb-1.5 block text-sm font-semibold text-muted">{o.address}</span>
+            <input name="address" autocomplete="street-address" class="field" />
+          </label>
+        </div>
+
+        <!-- Friends (group only) -->
+        <fieldset class="hidden" data-friends>
+          <legend class="mb-3 text-sm font-semibold text-muted">{o.friendsLabel}</legend>
+          <div class="space-y-3">
+            {Array.from({ length: pricing.groupFriends }, (_, i) => (
+              <div class="grid grid-cols-[1.4fr_1fr] gap-3">
+                <input name={`friend${i + 1}`} aria-label={o.friendName.replace("{n}", String(i + 1))} placeholder={o.friendName.replace("{n}", String(i + 1))} class="field" />
+                <input name={`friendPhone${i + 1}`} type="tel" inputmode="tel" dir="ltr" aria-label={o.friendPhone} placeholder={o.friendPhone} class="field text-start" />
+              </div>
+            ))}
+          </div>
+          <p class="mt-2 hidden text-sm text-[#e0796b]" data-error="friends">{o.errors.friends}</p>
+        </fieldset>
+
+        <!-- Payment -->
+        <fieldset>
+          <legend class="mb-2 text-sm font-semibold text-muted">{o.payment}</legend>
+          <div class="grid gap-2 sm:grid-cols-3">
+            {payments.map((p, i) => (
+              <label class="pick flex cursor-pointer items-center gap-3 rounded-xl border border-ink-2 bg-night px-4 py-3">
+                <input type="radio" name="payment" value={p.id} checked={i === 0} class="accent-[#d3ad5c]" />
+                <span>
+                  <span class="block font-semibold">{p.label}</span>
+                  {p.detail && <span class="block text-xs text-muted" dir="ltr">{p.detail}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Summary -->
+      <aside class="h-fit rounded-2xl border border-gold/30 bg-night p-6 lg:sticky lg:top-24">
+        <h3 class="text-lg font-bold">{o.summary}</h3>
+        <dl class="mt-4 space-y-2.5 text-sm" data-summary></dl>
+        <div class="mt-4 flex items-center justify-between border-t border-ink-2 pt-4">
+          <span class="text-muted">{o.delivery}</span>
+          <span class="font-semibold text-azhar">{delivery.fee === 0 ? o.free : money(lang, delivery.fee)}</span>
+        </div>
+        <div class="mt-3 flex items-baseline justify-between">
+          <span class="font-semibold" data-total-label>{d.subjects.total}</span>
+          <span class="text-3xl font-extrabold tabular-nums text-gold" data-order-total>{money(lang, 0)}</span>
+        </div>
+
+        <button type="submit" data-send="telegram" class="mt-6 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-[#2aabee] font-bold text-white hover:brightness-110">
+          <svg viewBox="0 0 24 24" class="size-5" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3l-3.2 15.1c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13 1.5 11.5c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z" /></svg>
+          {o.sendTelegram}
+        </button>
+        <button type="submit" data-send="whatsapp" class="mt-3 flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-[#25d366]/60 font-semibold text-[#7ee2a5] hover:bg-[#25d366]/10">
+          <svg viewBox="0 0 24 24" class="size-5" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.8 14.2c-.2.7-1.4 1.3-2 1.4-.5 0-1.2.1-3.6-.9-3-1.3-5-4.4-5.1-4.6-.2-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.4 1.8 2.2 1.2 1.1 2.3 1.4 2.6 1.6.3.1.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.3.1.2.1.8-.1 1.5z" /></svg>
+          {o.sendWhatsapp}
+        </button>
+        <p class="mt-4 hidden rounded-lg bg-azhar/15 p-3 text-sm text-[#cfe3d8]" role="status" data-copied>{o.copied}</p>
+      </aside>
+    </form>
+  </div>
+  <script type="application/json" id="order-data" set:html={JSON.stringify(clientData)} />
+</section>
+
+<script>
+  import { initOrder } from "../scripts/order";
+  initOrder();
+</script>

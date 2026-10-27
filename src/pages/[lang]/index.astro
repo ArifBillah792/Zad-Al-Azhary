@@ -1,0 +1,32 @@
+---
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Hero from "../../components/Hero.astro";
+import Subjects from "../../components/Subjects.astro";
+import Features from "../../components/Features.astro";
+import GroupOffer from "../../components/GroupOffer.astro";
+import Samples from "../../components/Samples.astro";
+import Order from "../../components/Order.astro";
+import Faq from "../../components/Faq.astro";
+import Footer from "../../components/Footer.astro";
+import { languages, type Lang } from "../../config/site";
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+---
+<Base lang={lang}>
+  <Header lang={lang} />
+  <main>
+    <Hero lang={lang} />
+    <Subjects lang={lang} />
+    <Features lang={lang} />
+    <GroupOffer lang={lang} />
+    <Samples lang={lang} />
+    <Order lang={lang} />
+    <Faq lang={lang} />
+  </main>
+  <Footer lang={lang} />
+</Base>

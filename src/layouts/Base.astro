@@ -1,0 +1,45 @@
+---
+// Self-hosted fonts (no Google request, faster on mobile data)
+import "@fontsource/cairo/400.css";
+import "@fontsource/cairo/600.css";
+import "@fontsource/cairo/700.css";
+import "@fontsource/cairo/800.css";
+import "@fontsource/amiri/400.css";
+import "@fontsource/amiri/700.css";
+import "@fontsource/hind-siliguri/400.css";
+import "@fontsource/hind-siliguri/600.css";
+import "@fontsource/hind-siliguri/700.css";
+import "../styles/global.css";
+import { languages, type Lang } from "../config/site";
+import { t } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const site = Astro.site?.toString().replace(/\/$/, "") ?? "";
+---
+<!doctype html>
+<html lang={lang} dir={d.dir}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{d.meta.title}</title>
+    <meta name="description" content={d.meta.description} />
+    <meta name="theme-color" content="#081629" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:title" content={d.meta.title} />
+    <meta property="og:description" content={d.meta.description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={`${site}/og.jpg`} />
+
+    {languages.map((l) => (
+      <link rel="alternate" hreflang={l} href={`${site}/${l}/`} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${site}/ar/`} />
+
+  </head>
+  <body class="min-h-dvh">
+    <slot />
+  </body>
+</html>

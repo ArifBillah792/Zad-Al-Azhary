@@ -1,0 +1,48 @@
+---
+import { payment, pricing, type Lang } from "../config/site";
+import { t, fill, money, startDate } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const vars = {
+  organizer: money(lang, pricing.groupOrganizer),
+  friend: money(lang, pricing.groupFriend),
+  full: money(lang, pricing.fullPackage),
+  number: payment.vodafoneCash,
+  date: startDate(lang),
+};
+const info = [
+  { title: d.info.deliveryTitle, text: d.info.deliveryText, icon: "M3 7h11v9H3zM14 10h4l3 3v3h-7zM7 19a2 2 0 100-4 2 2 0 000 4zM17 19a2 2 0 100-4 2 2 0 000 4z" },
+  { title: d.info.paymentTitle, text: d.info.paymentText, icon: "M3 6h18v12H3zM3 10h18M7 15h3" },
+  { title: d.info.startTitle, text: fill(d.info.startText, vars), icon: "M4 5h16v15H4zM4 9h16M8 3v4M16 3v4M8 13h3v3H8z" },
+];
+---
+<section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+  <ul class="grid gap-6 sm:grid-cols-3">
+    {info.map((i) => (
+      <li class="flex gap-4">
+        <svg viewBox="0 0 24 24" class="size-7 shrink-0 text-gold" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d={i.icon} /></svg>
+        <div>
+          <h3 class="font-bold">{i.title}</h3>
+          <p class="mt-1 text-sm leading-relaxed text-muted">{i.text}</p>
+        </div>
+      </li>
+    ))}
+  </ul>
+
+  <div id="faq" class="mt-20 grid gap-10 md:grid-cols-[1fr_2fr]">
+    <h2 class="text-3xl font-extrabold sm:text-4xl">{d.faq.title}</h2>
+    <div class="divide-y divide-ink-2 border-y border-ink-2">
+      {d.faq.items.map((item) => (
+        <details class="group py-5">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-semibold">
+            {item.q}
+            <svg viewBox="0 0 20 20" class="chev size-5 shrink-0 text-gold transition-transform" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 4v12M4 10h12" /></svg>
+          </summary>
+          <p class="mt-3 max-w-2xl leading-relaxed text-muted">{fill(item.a, vars)}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

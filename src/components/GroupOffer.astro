@@ -1,0 +1,49 @@
+---
+import { pricing, type Lang } from "../config/site";
+import { t, fill, money } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const n = pricing.groupFriends + 1;
+const groupTotal = pricing.groupOrganizer + pricing.groupFriend * pricing.groupFriends;
+const normalTotal = pricing.fullPackage * n;
+---
+<section id="group" class="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+  <div class="lattice relative overflow-hidden rounded-3xl border border-azhar/40 bg-azhar-deep px-5 py-10 sm:px-10 md:py-14">
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-azhar-deep/30 to-azhar-deep"></div>
+
+    <div class="relative">
+      <h2 class="max-w-2xl text-balance text-3xl font-extrabold sm:text-4xl">{d.group.title}</h2>
+      <p class="mt-3 max-w-2xl text-lg text-[#cfe3d8]">{d.group.lead}</p>
+
+      <ol class="mt-10 grid grid-cols-3 gap-3 sm:grid-cols-6">
+        <li class="flex flex-col items-center rounded-2xl bg-gold px-2 py-5 text-center text-night">
+          <svg viewBox="0 0 24 24" class="size-8" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6z" /></svg>
+          <span class="mt-2 text-sm font-bold">{d.group.you}</span>
+          <span class="mt-1 text-xl font-extrabold tabular-nums">{money(lang, pricing.groupOrganizer)}</span>
+        </li>
+        {Array.from({ length: pricing.groupFriends }, (_, i) => (
+          <li class="flex flex-col items-center rounded-2xl border border-[#cfe3d8]/20 bg-night/35 px-2 py-5 text-center">
+            <svg viewBox="0 0 24 24" class="size-8 text-[#cfe3d8]/80" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6z" /></svg>
+            <span class="mt-2 text-sm text-[#cfe3d8]">{d.group.friend} {i + 1}</span>
+            <span class="mt-1 text-xl font-extrabold tabular-nums text-gold-soft">{money(lang, pricing.groupFriend)}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+        <p class="text-lg">
+          <Fragment set:html={fill(d.group.groupTotal, {
+            total: `<strong class="text-gold-soft tabular-nums">${money(lang, groupTotal)}</strong>`,
+            normal: `<s class="text-[#cfe3d8]/60 tabular-nums">${money(lang, normalTotal)}</s>`,
+          })} />
+        </p>
+        <button type="button" data-start-group class="ms-auto inline-flex h-12 items-center rounded-xl bg-gold px-6 font-bold text-night hover:bg-gold-soft">
+          {d.group.cta}
+        </button>
+      </div>
+      <p class="mt-4 text-sm text-[#cfe3d8]/75">{d.group.note}</p>
+    </div>
+  </div>
+</section>

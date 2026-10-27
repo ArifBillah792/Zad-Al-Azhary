@@ -1,0 +1,40 @@
+---
+// Drop your photos in /public/samples as 1.jpg, 2.jpg, 3.jpg, 4.jpg.
+// Any missing file shows a placeholder card instead.
+import fs from "node:fs";
+import path from "node:path";
+import type { Lang } from "../config/site";
+import { t, fill } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const slots = [1, 2, 3, 4].map((n) => ({
+  n,
+  exists: fs.existsSync(path.join(process.cwd(), "public", "samples", `${n}.jpg`)),
+}));
+---
+<section class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
+  <h2 class="text-3xl font-extrabold sm:text-4xl">{d.samples.title}</h2>
+  <p class="mt-3 text-lg text-muted">{d.samples.lead}</p>
+
+  <div class="mt-8 flex snap-x gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:overflow-visible">
+    {slots.map((s) => s.exists ? (
+      <a href={`/samples/${s.n}.jpg`} target="_blank" class="w-60 shrink-0 snap-start overflow-hidden rounded-xl bg-paper md:w-auto">
+        <img src={`/samples/${s.n}.jpg`} alt={fill(d.samples.alt, { n: s.n })} loading="lazy" class="aspect-[3/4] w-full object-cover" />
+      </a>
+    ) : (
+      <div class="flex aspect-[3/4] w-60 shrink-0 snap-start flex-col justify-between rounded-xl border-2 border-dashed border-paper/25 bg-paper/5 p-5 md:w-auto">
+        <div class="space-y-2.5" aria-hidden="true">
+          <div class="h-3 w-2/3 rounded bg-paper/20"></div>
+          <div class="h-2 w-full rounded bg-paper/10"></div>
+          <div class="h-2 w-5/6 rounded bg-paper/10"></div>
+          <div class="mt-4 h-14 w-full rounded bg-gold/10"></div>
+          <div class="h-2 w-4/5 rounded bg-paper/10"></div>
+          <div class="h-2 w-3/5 rounded bg-paper/10"></div>
+        </div>
+        <span class="text-sm text-muted">{d.samples.soon} {s.n}</span>
+      </div>
+    ))}
+  </div>
+</section>
