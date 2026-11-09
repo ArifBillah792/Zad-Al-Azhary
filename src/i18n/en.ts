@@ -86,10 +86,13 @@ const en = {
   },
 
   samples: {
-    title: "See the pages before you order",
-    lead: "Real pages from the notes.",
-    alt: "Sample page {n}",
-    soon: "Sample page",
+    title: "Read a sample before you order",
+    lead: "Open a few real pages from each subject's notes and see the style, the tables and the page tracker for yourself.",
+    badge: "Sample",
+    open: "Read the sample",
+    soon: "Sample coming soon",
+    alt: "Sample of the {subject} notes",
+    note: "Each sample is a short PDF (up to 5 pages) and opens in your browser.",
   },
 
   order: {

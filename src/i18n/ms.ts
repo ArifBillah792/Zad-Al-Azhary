@@ -88,10 +88,13 @@ const ms: Dict = {
   },
 
   samples: {
-    title: "Lihat halaman sebelum memesan",
-    lead: "Halaman sebenar daripada nota.",
-    alt: "Contoh halaman {n}",
-    soon: "Contoh halaman",
+    title: "Baca contoh sebelum memesan",
+    lead: "Buka beberapa halaman sebenar daripada nota setiap subjek dan lihat sendiri gaya penulisan, jadual dan penanda halaman buku teks.",
+    badge: "Contoh",
+    open: "Baca contoh",
+    soon: "Contoh akan datang",
+    alt: "Contoh nota {subject}",
+    note: "Setiap contoh ialah PDF ringkas (maksimum 5 halaman) dan dibuka dalam pelayar.",
   },
 
   order: {
