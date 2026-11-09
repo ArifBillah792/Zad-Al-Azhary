@@ -105,6 +105,14 @@ const ms: Dict = {
     note: "Contoh dibuka terus di halaman ini, tanpa perlu muat turun.",
   },
 
+  promo: {
+    badge: "Tawaran bengkel",
+    title: "Tempah sebelum bengkel dan jimat {amount}",
+    text: "Pesan nota anda sekarang, sebelum datang ke bengkel, dan masukkan kod promo dalam borang pesanan untuk potongan {amount} daripada jumlah anda.",
+    note: "Satu potongan bagi setiap pesanan. Tidak boleh digabung dengan tawaran berkumpulan.",
+    cta: "Tempah sekarang",
+  },
+
   order: {
     title: "Buat pesanan",
     lead: "Isi borang dan hantar kepada kami. Kami sahkan setiap pesanan dan aturkan penghantaran.",
@@ -142,6 +150,11 @@ const ms: Dict = {
     sendTelegram: "Hantar pesanan di Telegram",
     sendWhatsapp: "Hantar di WhatsApp",
     copied: "Pesanan disalin. Tampal dalam sembang Telegram dan hantar.",
+    promoLabel: "Kod promo bengkel (jika ada)",
+    promoPlaceholder: "Masukkan kod",
+    promoOk: "Kod diterima: potongan {amount} daripada jumlah.",
+    promoBad: "Kod ini tidak sah. Semak dan cuba lagi.",
+    promoRow: "Potongan bengkel",
     errors: {
       name: "Masukkan nama anda.",
       phone: "Masukkan nombor telefon untuk kami hubungi.",
@@ -159,6 +172,8 @@ const ms: Dict = {
       notes: "Nota",
       friends: "Rakan",
       total: "Jumlah",
+      subtotal: "Jumlah kecil",
+      promo: "Kod promo",
     },
   },
 

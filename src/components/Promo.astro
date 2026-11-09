@@ -1,0 +1,34 @@
+---
+// Workshop promo banner. Turned on and off with `promo.enabled` in src/config/site.ts.
+import { promo, type Lang } from "../config/site";
+import { t, money, fill } from "../i18n";
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const amount = money(lang, promo.discount);
+---
+{promo.enabled && (
+  <section class="mx-auto max-w-6xl px-4 sm:px-6" aria-labelledby="promo-title">
+    <div class="relative overflow-hidden rounded-2xl border border-gold/50 bg-gradient-to-l from-gold/20 via-ink to-ink p-5 sm:p-7">
+      <div class="pointer-events-none absolute -end-10 -top-10 size-40 rounded-full bg-gold/15 blur-2xl" aria-hidden="true"></div>
+      <div class="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-start gap-4">
+          <div class="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl bg-gold text-night shadow-lg" aria-hidden="true">
+            <span class="text-xs font-bold leading-none">−</span>
+            <span class="text-xl font-extrabold leading-none tabular-nums">{promo.discount}</span>
+          </div>
+          <div>
+            <span class="inline-block rounded-full bg-gold/15 px-2.5 py-0.5 text-xs font-bold text-gold">{d.promo.badge}</span>
+            <h2 id="promo-title" class="mt-1.5 text-xl font-extrabold sm:text-2xl">{fill(d.promo.title, { amount })}</h2>
+            <p class="mt-1.5 max-w-2xl text-muted">{fill(d.promo.text, { amount })}</p>
+            <p class="mt-1 text-xs text-muted/80">{d.promo.note}</p>
+          </div>
+        </div>
+        <a href="#order" class="inline-flex shrink-0 items-center justify-center rounded-xl bg-gold px-6 py-3 font-bold text-night hover:brightness-110">
+          {d.promo.cta}
+        </a>
+      </div>
+    </div>
+  </section>
+)}

@@ -103,6 +103,14 @@ const en = {
     note: "Samples open right here on the page, no download needed.",
   },
 
+  promo: {
+    badge: "Workshop offer",
+    title: "Book before the workshop and save {amount}",
+    text: "Order your notes now, before you come to the workshop, and enter the promo code in the order form to take {amount} off your total.",
+    note: "One discount per order. Not combined with the group offer.",
+    cta: "Book now",
+  },
+
   order: {
     title: "Place your order",
     lead: "Fill in the form and send it to us. We confirm every order and arrange delivery.",
@@ -140,6 +148,11 @@ const en = {
     sendTelegram: "Send order on Telegram",
     sendWhatsapp: "Send on WhatsApp",
     copied: "Order copied. Paste it in the Telegram chat and send.",
+    promoLabel: "Workshop promo code (if you have one)",
+    promoPlaceholder: "Enter the code",
+    promoOk: "Code applied: {amount} off your total.",
+    promoBad: "This code isn't valid. Check it and try again.",
+    promoRow: "Workshop discount",
     errors: {
       name: "Enter your name.",
       phone: "Enter a phone number we can reach you on.",
@@ -157,6 +170,8 @@ const en = {
       notes: "Notes",
       friends: "Friends",
       total: "Total",
+      subtotal: "Subtotal",
+      promo: "Promo code",
     },
   },
 

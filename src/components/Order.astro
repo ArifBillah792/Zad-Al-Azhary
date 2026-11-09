@@ -1,5 +1,6 @@
 ---
-import { contact, payment, pricing, subjects, delivery, type Lang } from "../config/site";
+import { createHash } from "node:crypto";
+import { contact, payment, pricing, promo, subjects, delivery, type Lang } from "../config/site";
 import { t, money } from "../i18n";
 
 interface Props { lang: Lang }
@@ -13,6 +14,10 @@ const clientData = {
   currency: d.currency,
   contact,
   pricing,
+  // Only a fingerprint of the promo code is sent to the browser, not the code itself.
+  promo: promo.enabled
+    ? { discount: promo.discount, hash: createHash("sha256").update(promo.code.trim().toUpperCase()).digest("hex") }
+    : null,
   subjects: subjects.map((s) => ({ id: s.id, price: s.price, name: d.subjects.names[s.id] })),
   t: { ...o, fullSetName: o.fullSet, modeIndividual: o.modeIndividual, modeGroup: o.modeGroup },
 };
@@ -106,6 +111,21 @@ const payments = [
             ))}
           </div>
         </fieldset>
+
+        <!-- Promo code (single and full-set orders) -->
+        {promo.enabled && (
+          <div data-promo-box>
+            <label class="block">
+              <span class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-muted">
+                <svg viewBox="0 0 20 20" class="size-4 text-gold" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10.6V4.5A1.5 1.5 0 014.5 3h6.1a1.5 1.5 0 011 .4l5 5a1.5 1.5 0 010 2.2l-6 6a1.5 1.5 0 01-2.2 0l-5-5a1.5 1.5 0 01-.4-1z" /><circle cx="7" cy="7" r="1.2" fill="currentColor" /></svg>
+                {o.promoLabel}
+              </span>
+              <input name="promo" autocomplete="off" autocapitalize="characters" spellcheck="false" dir="ltr" placeholder={o.promoPlaceholder} class="field text-start uppercase tracking-wider" />
+            </label>
+            <p class="mt-1.5 hidden text-sm text-[#8fd6ae]" data-promo-ok>{o.promoOk.replace("{amount}", money(lang, promo.discount))}</p>
+            <p class="mt-1.5 hidden text-sm text-[#e0796b]" data-promo-bad>{o.promoBad}</p>
+          </div>
+        )}
       </div>
 
       <!-- Summary -->

@@ -25,10 +25,20 @@ export const delivery = {
 };
 
 export const pricing = {
-  fullPackage: 650,
+  fullPackage: 700, // all six together (125 + 5 × 115)
   groupOrganizer: 500,
   groupFriend: 550,
   groupFriends: 5, // friends besides the organizer
+};
+
+// Workshop promo: students who book before the workshop enter this code
+// in the order form and get `discount` EGP off their order total.
+// Applies to single and full-set orders, not to the group offer.
+// Set enabled: false to remove the promo banner and the code field.
+export const promo = {
+  enabled: true,
+  code: "ZAD75", // what students type (not case-sensitive)
+  discount: 75, // EGP off the total
 };
 
 export type SubjectId =
@@ -47,12 +57,12 @@ export interface Subject {
 }
 
 export const subjects: Subject[] = [
-  { id: "nahw", price: 120, arabic: "النحو والصرف", color: "#173a63" },
-  { id: "mantiq", price: 120, arabic: "علم المنطق", color: "#6b2a3a" },
-  { id: "sunnah", price: 100, arabic: "تاريخ السنة النبوية", color: "#2f6b52" },
-  { id: "fiqh", price: 110, arabic: "فقه العبادات", color: "#8a6a2b" },
-  { id: "nuzum", price: 100, arabic: "النظم الإسلامية", color: "#3d3f73" },
-  { id: "quran", price: 100, arabic: "علوم القرآن", color: "#1f4f5c" },
+  { id: "nahw", price: 125, arabic: "النحو والصرف", color: "#173a63" },
+  { id: "mantiq", price: 115, arabic: "علم المنطق", color: "#6b2a3a" },
+  { id: "sunnah", price: 115, arabic: "تاريخ السنة النبوية", color: "#2f6b52" },
+  { id: "fiqh", price: 115, arabic: "فقه العبادات", color: "#8a6a2b" },
+  { id: "nuzum", price: 115, arabic: "النظم الإسلامية", color: "#3d3f73" },
+  { id: "quran", price: 115, arabic: "علوم القرآن", color: "#1f4f5c" },
 ];
 
 export const languages = ["ar", "en", "bn", "ms"] as const;

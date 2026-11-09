@@ -6,6 +6,7 @@ type Data = {
   currency: string;
   contact: { telegramUsername: string; telegramGroup: string; whatsapp: string };
   pricing: { fullPackage: number; groupOrganizer: number; groupFriend: number; groupFriends: number };
+  promo: { discount: number; hash: string } | null;
   subjects: { id: string; price: number; name: string }[];
   t: Record<string, any>;
 };
@@ -29,6 +30,30 @@ export function initOrder() {
   const boxes = $$<HTMLInputElement>('input[name="subject"]');
   const modeInputs = $$<HTMLInputElement>('input[name="mode"]', form);
   const friendsBox = $("[data-friends]", form)!;
+
+  const promoInput = $<HTMLInputElement>('[name="promo"]', form);
+  const promoBox = $("[data-promo-box]", form);
+  let promoOk = false;
+  const promoCode = () => (promoInput?.value ?? "").replace(/\s+/g, "").toUpperCase();
+
+  async function sha256(text: string) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // While typing, only confirm a correct code; complain about a wrong one when the field is left.
+  async function checkPromo(showError = false) {
+    const code = promoCode();
+    promoOk = !!(data.promo && code && (await sha256(code)) === data.promo.hash);
+    $("[data-promo-ok]", form)?.classList.toggle("hidden", !promoOk);
+    const bad = !promoOk && code.length > 0 && showError;
+    if (promoOk || !code || showError) $("[data-promo-bad]", form)?.classList.toggle("hidden", !bad);
+    promoInput?.setAttribute("aria-invalid", bad ? "true" : "false");
+    render();
+  }
+
+  // Discount for an individual order (never more than the total)
+  const discountFor = (sum: number) => (promoOk && data.promo && sum > 0 ? Math.min(data.promo.discount, sum) : 0);
 
   const mode = () => (modeInputs.find((i) => i.checked)?.value ?? "individual") as "individual" | "group";
   const selected = () => boxes.filter((b) => b.checked).map((b) => data.subjects.find((s) => s.id === b.value)!);
@@ -64,6 +89,7 @@ export function initOrder() {
     }
 
     friendsBox.classList.toggle("hidden", !isGroup);
+    promoBox?.classList.toggle("hidden", isGroup);
 
     // Summary
     const dl = $("[data-summary]", form)!;
@@ -78,10 +104,15 @@ export function initOrder() {
       $("[data-order-total]", form)!.textContent = money(p.groupOrganizer + p.groupFriend * p.groupFriends);
       $("[data-total-label]", form)!.textContent = t.groupTotal;
     } else {
-      dl.innerHTML = sel.length
-        ? sel.map((s) => row(s.name, money(s.price))).join("")
-        : `<p class="text-muted">${esc(t.pickSubjects)}</p>`;
-      $("[data-order-total]", form)!.textContent = money(sum);
+      const off = discountFor(sum);
+      dl.innerHTML =
+        (sel.length
+          ? sel.map((s) => row(s.name, money(s.price))).join("")
+          : `<p class="text-muted">${esc(t.pickSubjects)}</p>`) +
+        (off
+          ? `<div class="flex justify-between gap-4 text-[#8fd6ae]"><dt>${esc(t.promoRow)}</dt><dd class="tabular-nums">− ${esc(money(off))}</dd></div>`
+          : "");
+      $("[data-order-total]", form)!.textContent = money(sum - off);
       $("[data-total-label]", form)!.textContent = t.youPay;
     }
   }
@@ -89,6 +120,8 @@ export function initOrder() {
   // ── Wiring ───────────────────────────────────────────────
   boxes.forEach((b) => b.addEventListener("change", render));
   modeInputs.forEach((i) => i.addEventListener("change", render));
+  promoInput?.addEventListener("input", () => checkPromo(false));
+  promoInput?.addEventListener("change", () => checkPromo(true));
 
   $("[data-select-all]")?.addEventListener("click", () => {
     boxes.forEach((b) => (b.checked = true));
@@ -177,7 +210,14 @@ export function initOrder() {
       lines.push("", `${t.youPay}: ${money(p.groupOrganizer)}`, `${t.friendsPay}: ${money(p.groupFriend)}`);
       lines.push(`${m.total}: ${money(p.groupOrganizer + p.groupFriend * p.groupFriends)}`);
     } else {
-      lines.push("", `${m.total}: ${money(selected().reduce((a, s) => a + s.price, 0))}`);
+      const sum = selected().reduce((a, s) => a + s.price, 0);
+      const off = discountFor(sum);
+      lines.push("");
+      if (off) {
+        lines.push(`${m.subtotal}: ${money(sum)}`);
+        lines.push(`${m.promo}: ${promoCode()} (− ${money(off)})`);
+      }
+      lines.push(`${m.total}: ${money(sum - off)}`);
     }
     return lines.join("\n");
   }

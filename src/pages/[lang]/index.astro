@@ -2,6 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Hero from "../../components/Hero.astro";
+import Promo from "../../components/Promo.astro";
 import Subjects from "../../components/Subjects.astro";
 import Features from "../../components/Features.astro";
 import GroupOffer from "../../components/GroupOffer.astro";
@@ -21,6 +22,7 @@ const lang = Astro.params.lang as Lang;
   <Header lang={lang} />
   <main>
     <Hero lang={lang} />
+    <Promo lang={lang} />
     <Subjects lang={lang} />
     <Features lang={lang} />
     <GroupOffer lang={lang} />

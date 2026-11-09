@@ -50,7 +50,7 @@ const listFmt = new Intl.ListFormat(d.locale, { style: "long", type: "conjunctio
   </div>
 
   {ready.length > 0 && (
-        <ul class="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-10 sm:gap-x-6">
+    <ul class="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-10 sm:gap-x-6">
       {ready.map((s) => {
         const viewer = s.pages.length > 0;
         const Tag = viewer ? "button" : "a";
@@ -58,7 +58,7 @@ const listFmt = new Intl.ListFormat(d.locale, { style: "long", type: "conjunctio
           ? { type: "button", "data-sample-open": s.id }
           : { href: `/samples/${s.id}.pdf`, target: "_blank", rel: "noopener" };
         return (
-                    <li class="sample-card flex w-[calc(50%-0.5rem)] flex-col sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
+          <li class="sample-card flex w-[calc(50%-0.5rem)] flex-col sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
             <Tag {...openProps} class="group relative block w-full cursor-pointer text-start" aria-label={`${d.samples.open}: ${s.name}`}>
               <span class="sheet sheet-2" aria-hidden="true"></span>
               <span class="sheet sheet-1" aria-hidden="true"></span>
