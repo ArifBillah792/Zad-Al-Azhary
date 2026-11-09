@@ -4,7 +4,7 @@
 //   nahw/1.jpg ... 5.jpg  the sample pages, shown in the swipe viewer
 //   nahw.pdf              optional, offered as "Download PDF"
 // Subject ids: nahw, mantiq, sunnah, fiqh, nuzum, quran.
-// A subject with no page images and no PDF shows a "coming soon" card.
+// Subjects with no page images and no PDF are listed in one "coming soon" line.
 import fs from "node:fs";
 import path from "node:path";
 import { subjects, type Lang } from "../config/site";
@@ -32,9 +32,16 @@ const items = subjects.map((s) => {
     pages,
     hasPdf,
     hasCover: fs.existsSync(path.join(dir, `${s.id}.jpg`)),
-    size: mb >= 0.95 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(mb * 1024))} KB`,
+    size: mb >= 0.95
+      ? `${new Intl.NumberFormat(d.locale, { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(mb)} MB`
+      : `${new Intl.NumberFormat(d.locale).format(Math.max(1, Math.round(mb * 1024)))} KB`,
   };
 });
+const ready = items.filter((s) => s.pages.length > 0 || s.hasPdf);
+const pending = items.filter((s) => s.pages.length === 0 && !s.hasPdf);
+const numFmt = new Intl.NumberFormat(d.locale);
+const num = (n: number) => numFmt.format(n);
+const listFmt = new Intl.ListFormat(d.locale, { style: "long", type: "conjunction" });
 ---
 <section id="samples" class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
   <div class="max-w-2xl">
@@ -42,63 +49,60 @@ const items = subjects.map((s) => {
     <p class="mt-3 text-lg text-muted">{d.samples.lead}</p>
   </div>
 
-  <ul class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
-    {items.map((s) => {
-      const ready = s.pages.length > 0 || s.hasPdf;
-      const cover = (
-        <div class="relative aspect-[210/297] w-full overflow-hidden rounded-lg bg-paper">
-          {s.hasCover ? (
-            <img src={`/samples/${s.id}.jpg`} alt={fill(d.samples.alt, { subject: s.name })} loading="lazy" class="h-full w-full object-cover object-top" />
-          ) : (
-            <div class="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center" style={`background:${s.color};box-shadow:inset 0 0 0 1px rgba(233,214,166,.25)`}>
-              <span class="h-px w-10 bg-gold/70"></span>
-              <span class="naskh text-xl font-bold leading-snug text-gold-soft sm:text-2xl" lang="ar" dir="rtl">{s.arabic}</span>
-              <span class="h-px w-10 bg-gold/70"></span>
-            </div>
-          )}
-          <span class="absolute start-2 top-2 rounded-full bg-night/80 px-2.5 py-0.5 text-xs font-bold text-gold">{d.samples.badge}</span>
-          {!ready && <span class="absolute inset-0 bg-night/55"></span>}
-        </div>
-      );
-      const openBtnClass = "mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-3 py-2.5 text-sm font-bold text-night hover:brightness-110";
-      const bookIcon = (
-        <svg viewBox="0 0 20 20" class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4.5c2.5-1 4.8-.8 7 .8 2.2-1.6 4.5-1.8 7-.8v11c-2.5-1-4.8-.8-7 .8-2.2-1.6-4.5-1.8-7-.8z" /><path d="M10 5.3v11" /></svg>
-      );
-      return (
-        <li class="flex flex-col rounded-2xl border border-ink-2 bg-ink p-2.5 sm:p-3">
-          {s.pages.length > 0 ? (
-            <button type="button" class="block w-full cursor-zoom-in text-start" data-sample-open={s.id} aria-label={`${d.samples.open}: ${s.name}`}>{cover}</button>
-          ) : s.hasPdf ? (
-            <a href={`/samples/${s.id}.pdf`} target="_blank" rel="noopener" class="block" aria-label={`${d.samples.open}: ${s.name}`}>{cover}</a>
-          ) : cover}
-
-          <div class="mt-3 flex flex-1 flex-col px-1">
-            <span class="font-bold leading-snug">{s.name}</span>
-            {s.pages.length > 0 ? (
-              <>
-                <span class="mt-0.5 text-xs text-muted">{fill(d.samples.pages, { n: s.pages.length })}</span>
-                <button type="button" class={openBtnClass} data-sample-open={s.id}>{bookIcon}{d.samples.open}</button>
-                {s.hasPdf && (
-                  <a href={`/samples/${s.id}.pdf`} download class="mt-2 text-center text-xs text-muted underline-offset-4 hover:text-gold hover:underline">
-                    {d.samples.download} · {s.size}
-                  </a>
+  {ready.length > 0 && (
+        <ul class="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-10 sm:gap-x-6">
+      {ready.map((s) => {
+        const viewer = s.pages.length > 0;
+        const Tag = viewer ? "button" : "a";
+        const openProps = viewer
+          ? { type: "button", "data-sample-open": s.id }
+          : { href: `/samples/${s.id}.pdf`, target: "_blank", rel: "noopener" };
+        return (
+                    <li class="sample-card flex w-[calc(50%-0.5rem)] flex-col sm:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)]">
+            <Tag {...openProps} class="group relative block w-full cursor-pointer text-start" aria-label={`${d.samples.open}: ${s.name}`}>
+              <span class="sheet sheet-2" aria-hidden="true"></span>
+              <span class="sheet sheet-1" aria-hidden="true"></span>
+              <span class="relative block aspect-[210/297] overflow-hidden rounded-md bg-white shadow-[0_18px_40px_-12px_rgba(0,0,0,.6)] ring-1 ring-black/10 transition-transform duration-300 group-hover:-translate-y-1.5">
+                {s.hasCover ? (
+                  <img src={`/samples/${s.id}.jpg`} alt={fill(d.samples.alt, { subject: s.name })} loading="lazy" class="h-full w-full object-cover object-top" />
+                ) : (
+                  <span class="flex h-full w-full items-center justify-center p-4 text-center" style={`background:${s.color}`}>
+                    <span class="naskh text-2xl font-bold text-gold-soft" lang="ar" dir="rtl">{s.arabic}</span>
+                  </span>
                 )}
-              </>
-            ) : s.hasPdf ? (
-              <>
-                <span class="mt-0.5 text-xs text-muted">PDF · {s.size}</span>
-                <a href={`/samples/${s.id}.pdf`} target="_blank" rel="noopener" class={openBtnClass}>{bookIcon}{d.samples.open}</a>
-              </>
-            ) : (
-              <span class="mt-3 rounded-xl border border-dashed border-ink-2 px-3 py-2.5 text-center text-sm text-muted">{d.samples.soon}</span>
-            )}
-          </div>
-        </li>
-      );
-    })}
-  </ul>
+                {viewer && (
+                  <span class="absolute bottom-2 end-2 rounded-full bg-night/85 px-2.5 py-1 text-xs font-bold text-gold-soft backdrop-blur">
+                    {fill(d.samples.pages, { n: num(s.pages.length) })}
+                  </span>
+                )}
+              </span>
+            </Tag>
 
-  <p class="mt-4 text-sm text-muted">{d.samples.note}</p>
+            <h3 class="mt-5 font-bold leading-snug sm:text-lg">{s.name}</h3>
+            <div class="mt-auto pt-3">
+              <Tag {...openProps} class="flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-3 py-2.5 text-sm font-bold text-night transition hover:brightness-110">
+                <svg viewBox="0 0 20 20" class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4.5c2.5-1 4.8-.8 7 .8 2.2-1.6 4.5-1.8 7-.8v11c-2.5-1-4.8-.8-7 .8-2.2-1.6-4.5-1.8-7-.8z" /><path d="M10 5.3v11" /></svg>
+                {d.samples.open}
+              </Tag>
+              {viewer && s.hasPdf && (
+                <a href={`/samples/${s.id}.pdf`} download class="mt-2 flex items-center justify-center gap-1.5 text-xs text-muted underline-offset-4 hover:text-gold hover:underline">
+                  <svg viewBox="0 0 20 20" class="size-3.5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3v10m0 0l-4-4m4 4l4-4M4 16h12" /></svg>
+                  {d.samples.download}
+                </a>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+
+  {pending.length > 0 && (
+    <p class="mt-10 flex items-start gap-2 rounded-xl border border-dashed border-ink-2 px-4 py-3 text-sm text-muted">
+      <svg viewBox="0 0 20 20" class="mt-0.5 size-4 shrink-0 text-gold" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10" cy="10" r="7" /><path d="M10 6.5V10l2.5 1.5" /></svg>
+      <span>{fill(d.samples.soonList, { list: listFmt.format(pending.map((s) => s.name)) })}</span>
+    </p>
+  )}
 
   <!-- One shared viewer. Pages come from the data attribute of the subject opened. -->
   <dialog
@@ -107,6 +111,7 @@ const items = subjects.map((s) => {
     aria-label={d.samples.title}
     data-items={JSON.stringify(Object.fromEntries(items.filter((s) => s.pages.length).map((s) => [s.id, { name: s.name, pages: s.pages }])))}
     data-label-page={d.samples.pageOf}
+    data-locale={d.locale}
   >
     <div class="flex h-full flex-col">
       <div class="flex items-center gap-3 border-b border-ink-2 px-4 py-3">
@@ -133,6 +138,25 @@ const items = subjects.map((s) => {
 </section>
 
 <style>
+  .sheet {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.375rem;
+    background: #f4efe3;
+    box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s;
+  }
+  .sheet-1 { transform: translate(5px, 5px) rotate(1.5deg); }
+  .sheet-2 { transform: translate(10px, 9px) rotate(3deg); background: #e8e0cc; }
+  :global([dir="rtl"]) .sheet-1 { transform: translate(-5px, 5px) rotate(-1.5deg); }
+  :global([dir="rtl"]) .sheet-2 { transform: translate(-10px, 9px) rotate(-3deg); }
+  .group:hover .sheet-1 { transform: translate(7px, 3px) rotate(2.5deg); }
+  .group:hover .sheet-2 { transform: translate(14px, 5px) rotate(5deg); }
+  :global([dir="rtl"]) .group:hover .sheet-1 { transform: translate(-7px, 3px) rotate(-2.5deg); }
+  :global([dir="rtl"]) .group:hover .sheet-2 { transform: translate(-14px, 5px) rotate(-5deg); }
+  @media (prefers-reduced-motion: reduce) {
+    .sheet, .group span { transition: none !important; }
+  }
   .sample-viewer[open] { display: block; }
   .viewer-track { scrollbar-width: none; }
   .viewer-track::-webkit-scrollbar { display: none; }
@@ -144,6 +168,7 @@ const items = subjects.map((s) => {
   if (dialog) {
     const data: Record<string, { name: string; pages: string[] }> = JSON.parse(dialog.dataset.items || "{}");
     const pageLabel = dialog.dataset.labelPage || "{n} / {total}";
+    const nf = new Intl.NumberFormat(dialog.dataset.locale || undefined);
     const track = dialog.querySelector<HTMLElement>("[data-viewer-track]")!;
     const title = dialog.querySelector<HTMLElement>("[data-viewer-title]")!;
     const count = dialog.querySelector<HTMLElement>("[data-viewer-count]")!;
@@ -154,7 +179,7 @@ const items = subjects.map((s) => {
     let observer: IntersectionObserver | null = null;
 
     const update = () => {
-      count.textContent = pageLabel.replace("{n}", String(current + 1)).replace("{total}", String(slides.length));
+      count.textContent = pageLabel.replace("{n}", nf.format(current + 1)).replace("{total}", nf.format(slides.length));
       prev.disabled = current === 0;
       next.disabled = current === slides.length - 1;
     };
