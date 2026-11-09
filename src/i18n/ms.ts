@@ -94,7 +94,14 @@ const ms: Dict = {
     open: "Baca contoh",
     soon: "Contoh akan datang",
     alt: "Contoh nota {subject}",
-    note: "Setiap contoh ialah PDF ringkas (maksimum 5 halaman) dan dibuka dalam pelayar.",
+    pages: "{n} halaman contoh",
+    pageOf: "{n} / {total}",
+    download: "Muat turun PDF",
+    close: "Tutup",
+    prev: "Halaman sebelumnya",
+    next: "Halaman seterusnya",
+    hint: "Leret untuk selak halaman. Cubit untuk zum.",
+    note: "Contoh dibuka terus di halaman ini, tanpa perlu muat turun.",
   },
 
   order: {

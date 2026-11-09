@@ -92,7 +92,14 @@ const en = {
     open: "Read the sample",
     soon: "Sample coming soon",
     alt: "Sample of the {subject} notes",
-    note: "Each sample is a short PDF (up to 5 pages) and opens in your browser.",
+    pages: "{n} sample pages",
+    pageOf: "{n} / {total}",
+    download: "Download PDF",
+    close: "Close",
+    prev: "Previous page",
+    next: "Next page",
+    hint: "Swipe to turn the page. Pinch to zoom.",
+    note: "Samples open right here on the page, no download needed.",
   },
 
   order: {

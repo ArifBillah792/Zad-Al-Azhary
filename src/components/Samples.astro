@@ -1,9 +1,10 @@
 ---
-// Sample PDFs, one per subject.
-// Put each file in /public/samples/ named by subject id:
-//   nahw.pdf  mantiq.pdf  sunnah.pdf  fiqh.pdf  nuzum.pdf  quran.pdf
-// Optional cover thumbnail with the same name: nahw.jpg, mantiq.jpg, ...
-// A missing PDF shows a "coming soon" card instead.
+// Sample pages, one set per subject. Everything in /public/samples/:
+//   nahw.jpg              cover shown on the card (page 1 is fine)
+//   nahw/1.jpg ... 5.jpg  the sample pages, shown in the swipe viewer
+//   nahw.pdf              optional, offered as "Download PDF"
+// Subject ids: nahw, mantiq, sunnah, fiqh, nuzum, quran.
+// A subject with no page images and no PDF shows a "coming soon" card.
 import fs from "node:fs";
 import path from "node:path";
 import { subjects, type Lang } from "../config/site";
@@ -15,14 +16,23 @@ const d = t(lang);
 
 const dir = path.join(process.cwd(), "public", "samples");
 const items = subjects.map((s) => {
-  const pdf = path.join(dir, `${s.id}.pdf`);
-  const hasPdf = fs.existsSync(pdf);
-  const mb = hasPdf ? fs.statSync(pdf).size / 1048576 : 0;
+  const pdfPath = path.join(dir, `${s.id}.pdf`);
+  const hasPdf = fs.existsSync(pdfPath);
+  const mb = hasPdf ? fs.statSync(pdfPath).size / 1048576 : 0;
+  const pageDir = path.join(dir, s.id);
+  const pages = fs.existsSync(pageDir)
+    ? fs.readdirSync(pageDir)
+        .filter((f) => /^\d+\.jpg$/i.test(f))
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map((f) => `/samples/${s.id}/${f}`)
+    : [];
   return {
     ...s,
+    name: d.subjects.names[s.id],
+    pages,
     hasPdf,
     hasCover: fs.existsSync(path.join(dir, `${s.id}.jpg`)),
-    size: hasPdf ? (mb < 1 ? `${Math.max(1, Math.round(mb * 1024))} KB` : `${mb.toFixed(1)} MB`) : "",
+    size: mb >= 0.95 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(mb * 1024))} KB`,
   };
 });
 ---
@@ -32,13 +42,13 @@ const items = subjects.map((s) => {
     <p class="mt-3 text-lg text-muted">{d.samples.lead}</p>
   </div>
 
-  <ul class="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+  <ul class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
     {items.map((s) => {
-      const name = d.subjects.names[s.id];
+      const ready = s.pages.length > 0 || s.hasPdf;
       const cover = (
-        <div class="relative aspect-[3/4] w-full overflow-hidden rounded-lg md:aspect-[4/3]">
+        <div class="relative aspect-[210/297] w-full overflow-hidden rounded-lg bg-paper">
           {s.hasCover ? (
-            <img src={`/samples/${s.id}.jpg`} alt={fill(d.samples.alt, { subject: name })} loading="lazy" class="h-full w-full object-cover" />
+            <img src={`/samples/${s.id}.jpg`} alt={fill(d.samples.alt, { subject: s.name })} loading="lazy" class="h-full w-full object-cover object-top" />
           ) : (
             <div class="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center" style={`background:${s.color};box-shadow:inset 0 0 0 1px rgba(233,214,166,.25)`}>
               <span class="h-px w-10 bg-gold/70"></span>
@@ -47,23 +57,37 @@ const items = subjects.map((s) => {
             </div>
           )}
           <span class="absolute start-2 top-2 rounded-full bg-night/80 px-2.5 py-0.5 text-xs font-bold text-gold">{d.samples.badge}</span>
-          {!s.hasPdf && <span class="absolute inset-0 bg-night/55"></span>}
+          {!ready && <span class="absolute inset-0 bg-night/55"></span>}
         </div>
+      );
+      const openBtnClass = "mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-3 py-2.5 text-sm font-bold text-night hover:brightness-110";
+      const bookIcon = (
+        <svg viewBox="0 0 20 20" class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4.5c2.5-1 4.8-.8 7 .8 2.2-1.6 4.5-1.8 7-.8v11c-2.5-1-4.8-.8-7 .8-2.2-1.6-4.5-1.8-7-.8z" /><path d="M10 5.3v11" /></svg>
       );
       return (
         <li class="flex flex-col rounded-2xl border border-ink-2 bg-ink p-2.5 sm:p-3">
-          {s.hasPdf ? (
-            <a href={`/samples/${s.id}.pdf`} target="_blank" rel="noopener" class="block focus-visible:outline-2" aria-label={`${d.samples.open}: ${name}`}>{cover}</a>
+          {s.pages.length > 0 ? (
+            <button type="button" class="block w-full cursor-zoom-in text-start" data-sample-open={s.id} aria-label={`${d.samples.open}: ${s.name}`}>{cover}</button>
+          ) : s.hasPdf ? (
+            <a href={`/samples/${s.id}.pdf`} target="_blank" rel="noopener" class="block" aria-label={`${d.samples.open}: ${s.name}`}>{cover}</a>
           ) : cover}
+
           <div class="mt-3 flex flex-1 flex-col px-1">
-            <span class="font-bold leading-snug">{name}</span>
-            {s.hasPdf ? (
+            <span class="font-bold leading-snug">{s.name}</span>
+            {s.pages.length > 0 ? (
+              <>
+                <span class="mt-0.5 text-xs text-muted">{fill(d.samples.pages, { n: s.pages.length })}</span>
+                <button type="button" class={openBtnClass} data-sample-open={s.id}>{bookIcon}{d.samples.open}</button>
+                {s.hasPdf && (
+                  <a href={`/samples/${s.id}.pdf`} download class="mt-2 text-center text-xs text-muted underline-offset-4 hover:text-gold hover:underline">
+                    {d.samples.download} · {s.size}
+                  </a>
+                )}
+              </>
+            ) : s.hasPdf ? (
               <>
                 <span class="mt-0.5 text-xs text-muted">PDF · {s.size}</span>
-                <a href={`/samples/${s.id}.pdf`} target="_blank" rel="noopener" class="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-3 py-2.5 text-sm font-bold text-night hover:brightness-110">
-                  <svg viewBox="0 0 20 20" class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4.5c2.5-1 4.8-.8 7 .8 2.2-1.6 4.5-1.8 7-.8v11c-2.5-1-4.8-.8-7 .8-2.2-1.6-4.5-1.8-7-.8z" /><path d="M10 5.3v11" /></svg>
-                  {d.samples.open}
-                </a>
+                <a href={`/samples/${s.id}.pdf`} target="_blank" rel="noopener" class={openBtnClass}>{bookIcon}{d.samples.open}</a>
               </>
             ) : (
               <span class="mt-3 rounded-xl border border-dashed border-ink-2 px-3 py-2.5 text-center text-sm text-muted">{d.samples.soon}</span>
@@ -75,4 +99,126 @@ const items = subjects.map((s) => {
   </ul>
 
   <p class="mt-4 text-sm text-muted">{d.samples.note}</p>
+
+  <!-- One shared viewer. Pages come from the data attribute of the subject opened. -->
+  <dialog
+    id="sample-viewer"
+    class="sample-viewer m-0 h-dvh max-h-none w-screen max-w-none bg-night p-0 text-text backdrop:bg-night/80"
+    aria-label={d.samples.title}
+    data-items={JSON.stringify(Object.fromEntries(items.filter((s) => s.pages.length).map((s) => [s.id, { name: s.name, pages: s.pages }])))}
+    data-label-page={d.samples.pageOf}
+  >
+    <div class="flex h-full flex-col">
+      <div class="flex items-center gap-3 border-b border-ink-2 px-4 py-3">
+        <span class="min-w-0 flex-1 truncate font-bold" data-viewer-title></span>
+        <span class="shrink-0 text-sm tabular-nums text-muted" data-viewer-count aria-live="polite"></span>
+        <button type="button" class="flex size-10 shrink-0 items-center justify-center rounded-full bg-ink text-text hover:text-gold" data-viewer-close aria-label={d.samples.close}>
+          <svg viewBox="0 0 20 20" class="size-5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
+        </button>
+      </div>
+
+      <div class="relative min-h-0 flex-1">
+        <div class="viewer-track flex h-full snap-x snap-mandatory overflow-x-auto overscroll-contain focus:outline-none" data-viewer-track tabindex="0"></div>
+        <button type="button" class="viewer-nav absolute start-3 top-1/2 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/90 text-gold shadow md:flex" data-viewer-prev aria-label={d.samples.prev}>
+          <svg viewBox="0 0 20 20" class="size-5 rtl:rotate-180" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5" /></svg>
+        </button>
+        <button type="button" class="viewer-nav absolute end-3 top-1/2 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/90 text-gold shadow md:flex" data-viewer-next aria-label={d.samples.next}>
+          <svg viewBox="0 0 20 20" class="size-5 rtl:rotate-180" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5" /></svg>
+        </button>
+      </div>
+
+      <p class="px-4 py-2.5 text-center text-xs text-muted">{d.samples.hint}</p>
+    </div>
+  </dialog>
 </section>
+
+<style>
+  .sample-viewer[open] { display: block; }
+  .viewer-track { scrollbar-width: none; }
+  .viewer-track::-webkit-scrollbar { display: none; }
+  .viewer-nav:disabled { opacity: 0.3; cursor: default; }
+</style>
+
+<script>
+  const dialog = document.getElementById("sample-viewer") as HTMLDialogElement | null;
+  if (dialog) {
+    const data: Record<string, { name: string; pages: string[] }> = JSON.parse(dialog.dataset.items || "{}");
+    const pageLabel = dialog.dataset.labelPage || "{n} / {total}";
+    const track = dialog.querySelector<HTMLElement>("[data-viewer-track]")!;
+    const title = dialog.querySelector<HTMLElement>("[data-viewer-title]")!;
+    const count = dialog.querySelector<HTMLElement>("[data-viewer-count]")!;
+    const prev = dialog.querySelector<HTMLButtonElement>("[data-viewer-prev]")!;
+    const next = dialog.querySelector<HTMLButtonElement>("[data-viewer-next]")!;
+    let slides: HTMLElement[] = [];
+    let current = 0;
+    let observer: IntersectionObserver | null = null;
+
+    const update = () => {
+      count.textContent = pageLabel.replace("{n}", String(current + 1)).replace("{total}", String(slides.length));
+      prev.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+    };
+
+    const go = (i: number) => {
+      if (i < 0 || i >= slides.length) return;
+      slides[i].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+    };
+
+    const open = (id: string) => {
+      const item = data[id];
+      if (!item) return;
+      title.textContent = item.name;
+      track.replaceChildren(
+        ...item.pages.map((src, i) => {
+          const slide = document.createElement("div");
+          slide.className = "flex h-full w-full shrink-0 snap-start snap-always items-start justify-center overflow-y-auto p-3 sm:p-6";
+          const img = document.createElement("img");
+          img.src = src;
+          img.alt = `${item.name} – ${i + 1}`;
+          img.loading = i < 2 ? "eager" : "lazy";
+          img.decoding = "async";
+          img.className = "h-auto w-full max-w-3xl rounded-md bg-white shadow-lg md:h-full md:w-auto md:max-w-full md:object-contain";
+          slide.append(img);
+          return slide;
+        })
+      );
+      slides = Array.from(track.children) as HTMLElement[];
+      current = 0;
+      observer?.disconnect();
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              current = slides.indexOf(e.target as HTMLElement);
+              update();
+            }
+          }
+        },
+        { root: track, threshold: 0.6 }
+      );
+      slides.forEach((s) => observer!.observe(s));
+      update();
+      dialog.showModal();
+      track.scrollLeft = 0;
+      track.focus({ preventScroll: true });
+      document.documentElement.style.overflow = "hidden";
+    };
+
+    document.querySelectorAll<HTMLElement>("[data-sample-open]").forEach((btn) =>
+      btn.addEventListener("click", () => open(btn.dataset.sampleOpen!))
+    );
+    prev.addEventListener("click", () => go(current - 1));
+    next.addEventListener("click", () => go(current + 1));
+    dialog.querySelector("[data-viewer-close]")!.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("close", () => {
+      document.documentElement.style.overflow = "";
+      observer?.disconnect();
+      track.replaceChildren();
+    });
+    dialog.addEventListener("keydown", (e) => {
+      const rtl = document.documentElement.dir === "rtl";
+      if (e.key === "ArrowRight") { e.preventDefault(); go(current + (rtl ? -1 : 1)); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); go(current + (rtl ? 1 : -1)); }
+    });
+  }
+</script>
